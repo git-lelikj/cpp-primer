@@ -178,6 +178,7 @@ int main(int argc, char *argv[])
 // --------------------------------------------------------------------------------------------
 // template type deduction
 // --------------------------------------------------------------------------------------------
+#if 0
 #include <iostream>
 #include <utility>
 
@@ -244,6 +245,50 @@ int main(int argc, char *argv[])
     f_rref(*p_i);            // int&,        int&
     f_rref(123);             // int,         int&&
     f_rref(std::move(i));    // int,         int&&
+
+    return 0;
+}
+#endif
+
+// --------------------------------------------------------------------------------------------
+// auto
+// --------------------------------------------------------------------------------------------
+#include <iostream>
+#include <utility>
+
+template<typename T>
+class Type_display;
+
+int main(int argc, char *argv[])
+{
+    int i;
+    const int ci = 123;
+    int &l_i = i;
+    const int &l_ci = 456;
+    int *p_i = &i;
+    const int *const cp_ci = &i;
+    int a[10];
+    const int *p_ci = &i;
+
+    auto a_i = i;
+    auto a_ci = ci;
+    auto a_li = l_i;
+    auto a_l_ci = l_ci;
+    auto a_pi = p_i;
+    auto a_arr = a;
+
+    auto &a_lr_i = i;
+    auto &a_lr_arr = a;
+
+    Type_display<decltype(a_i)> type_a_i;
+    Type_display<decltype(a_ci)> type_a_ci;
+    Type_display<decltype(a_li)> type_a_li;
+    Type_display<decltype(a_l_ci)> type_a_l_ci;
+    Type_display<decltype(a_pi)> type_a_pi;
+    Type_display<decltype(a_arr)> type_a_arr;
+
+    Type_display<decltype(a_lr_i)> type_a_lr_i;
+    Type_display<decltype(a_lr_arr)> type_a_lr_arr;
 
     return 0;
 }
