@@ -251,8 +251,9 @@ int main(int argc, char *argv[])
 #endif
 
 // --------------------------------------------------------------------------------------------
-// auto
+// auto/decltype
 // --------------------------------------------------------------------------------------------
+#if 0
 #include <iostream>
 #include <utility>
 
@@ -280,6 +281,13 @@ int main(int argc, char *argv[])
     auto &a_lr_i = i;
     auto &a_lr_arr = a;
 
+    auto a_parentheses = (i);
+
+    auto a_literal = 123;
+    auto a_str_literal = "ladenzon";
+    auto &&a_rr_literal = 123;
+    auto &a_lr_str_literal = "ladenzon";
+
     Type_display<decltype(a_i)> type_a_i;
     Type_display<decltype(a_ci)> type_a_ci;
     Type_display<decltype(a_li)> type_a_li;
@@ -289,6 +297,118 @@ int main(int argc, char *argv[])
 
     Type_display<decltype(a_lr_i)> type_a_lr_i;
     Type_display<decltype(a_lr_arr)> type_a_lr_arr;
+
+    Type_display<decltype(a_parentheses)> type_a_parenth;
+    Type_display<decltype((i))> type_d_parenth;
+
+    Type_display<decltype(a_literal)> type_a_literal;
+    Type_display<decltype(a_str_literal)> type_a_str_literal;
+    Type_display<decltype(a_rr_literal)> type_a_rr_literal;
+    Type_display<decltype(a_lr_str_literal)> type_a_lr_str_literal;
+    Type_display<decltype(123)> type_d_literal;
+    Type_display<decltype("ladenzon")> type_d_str_literal;
+
+    return 0;
+}
+#endif
+
+// --------------------------------------------------------------------------------------------
+// 10 proven interview questions: #1
+// --------------------------------------------------------------------------------------------
+#if 0
+#include <iostream>
+#include <memory>
+
+std::unique_ptr<int> f(std::unique_ptr<int> u_i_arg)
+{
+    *u_i_arg = 456;
+    return u_i_arg;
+}
+
+int main(int argc, char *argv[])
+{
+    std::unique_ptr<int> u_i = std::unique_ptr<int>(new int(123));
+
+    f(std::move(u_i));
+
+    return 0;
+}
+#endif
+// --------------------------------------------------------------------------------------------
+// 10 proven interview questions: #2
+// --------------------------------------------------------------------------------------------
+#include <iostream>
+#include <vector>
+#include <string>
+
+class SearchQuery
+{
+public:
+    SearchQuery()
+    {}
+
+    SearchQuery(const SearchQuery& sq)
+    {}
+};
+
+class DirectorySearchResult {
+public:
+  DirectorySearchResult(
+    std::vector<std::string> const& files,
+    size_t attributes,
+    SearchQuery const* query)
+    : files_(files),
+      attributes_(attributes),
+      query_(new SearchQuery(*query))
+  {}
+
+  ~DirectorySearchResult() { delete query_; }
+
+  DirectorySearchResult(const DirectorySearchResult& rhs)
+    : files_(rhs.files_),
+      attributes_(rhs.attributes_),
+      query_(new SearchQuery(*rhs.query_))
+  {}
+
+  DirectorySearchResult(DirectorySearchResult&& rhs)
+      : files_(std::move(rhs.files_)),
+        attributes_(rhs.attributes_),
+        query_(rhs.query_)
+  {
+      rhs.query_ = nullptr;
+  }
+
+  DirectorySearchResult& operator=(const DirectorySearchResult& rhs)
+  {
+      if (&rhs != this) {
+          this->files_ = rhs.files_;
+          this->attributes_ = rhs.attributes_;
+          *this->query_ = *rhs.query_;
+      }
+      return *this;
+  }
+
+  DirectorySearchResult& operator=(DirectorySearchResult&& rhs)
+  {
+      if (&rhs != this) {
+          this->files_ = std::move(rhs.files_);
+          this->attributes_ = rhs.attributes_;
+          this->query_ = rhs.query_;
+          rhs.query_ = nullptr;
+      }
+      return *this;
+  }
+
+private:
+  std::vector<std::string> files_;
+  size_t attributes_;
+  SearchQuery* query_;
+};
+
+int main(int argc, char *argv[])
+{
+    std::vector<std::string> vs;
+    DirectorySearchResult sr(vs, 0, 0);
 
     return 0;
 }
