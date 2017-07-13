@@ -334,6 +334,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 #endif
+#if 0
 // --------------------------------------------------------------------------------------------
 // 10 proven interview questions: #2
 // --------------------------------------------------------------------------------------------
@@ -409,6 +410,394 @@ int main(int argc, char *argv[])
 {
     std::vector<std::string> vs;
     DirectorySearchResult sr(vs, 0, 0);
+
+    return 0;
+}
+#endif
+#if 0
+// --------------------------------------------------------------------------------------------
+// special member functions generation
+// --------------------------------------------------------------------------------------------
+#include <iostream>
+#include <vector>
+#include <string>
+#include <utility>
+using namespace std;
+
+struct A
+{
+    int i_ = 1;
+    string s_ = "amsterdam";
+
+    A() { cout << "A::A()\n"; }
+    ~A() { cout << "A::~A()\n"; }
+};
+
+struct B
+{
+    int i_ = 2;
+    string s_ = "boston";
+
+    B() { cout << "B::B()\n"; }
+    B(const B &b)
+        : i_(b.i_), s_(b.s_)
+    { cout << "B::B(const B&)\n"; }
+    B& operator=(const B &b)
+    {
+        cout << "B::operator=(const B&)\n";
+        i_ = b.i_;
+        s_ = b.s_;
+        return *this;
+    }
+    B(B &&b) = default;
+    B& operator=(B &&b) = default;
+    ~B() { cout << "B::~B()\n"; }             //  -> suppress default move constructor generation
+//    ~B() { cout << "B::~B()\n"; }             //  -> generate default move constructor
+};
+
+int main(int argc, char *argv[])
+{
+
+    {
+        cout << "Default copy constructor...\n";
+        A a1;
+        A a2(a1);
+        A a3 = a1;
+        cout << "a1.s_: " << a1.s_ << ", a2.s_: " << a2.s_ << ", a3.s_: " << a3.s_ << endl;
+    }
+    cout << endl;
+
+    {
+        cout << "Default copy assignment...\n";
+        A a1;
+        A a2;
+        a2 = a1;
+        cout << "a1.s_: " << a1.s_ << ", a2.s_: " << a2.s_ << endl;
+    }
+    cout << endl;
+
+    {
+        cout << "Default move constructor...\n";
+        B b1;
+        B b2(std::move(b1));
+        cout << "b1.i_:b1.s_: " << b1.i_ << ":" << b1.s_ << ", b2.i_:b2.s_: " << b2.i_ << ":" << b2.s_ << endl;
+    }
+    cout << endl;
+
+    {
+        cout << "Default move assignment...\n";
+        B b1;
+        B b2;
+        b2 = std::move(b1);
+        cout << "b1.i_:b1.s_: " << b1.i_ << ":" << b1.s_ << ", b2.i_:b2.s_: " << b2.i_ << ":" << b2.s_ << endl;
+    }
+    cout << endl;
+
+    return 0;
+}
+#endif
+
+// --------------------------------------------------------------------------------------------
+// copy/assign/move/swap
+// --------------------------------------------------------------------------------------------
+#include <iostream>
+#include <vector>
+#include <string>
+#include <utility>
+#include <memory>
+#include <algorithm>
+using namespace std;
+
+struct A
+{
+    int i_ = 1;
+    string s_ = "usa";
+    vector<string> vs_ = {"boston", "chicago", "new_york"};
+
+    A()
+    {
+        cout << "A::A()\n";
+    }
+    ~A() { cout << "A::~A()\n"; }
+    A(const A& a) = default;
+    A& operator=(const A &a) = default;
+    A(A &&a) = default;
+    A& operator=(A &&a) = default;
+
+    void foo()
+    {
+        cout << "A::foo()\n";
+    }
+};
+
+ostream& operator<<(ostream &os, const A &a)
+{
+    os  << "i_: " << a.i_ << ", "
+        << "s_: " << a.s_ << ", "
+//        << "vs_: " << a.vs_
+           ;
+    os << "vs_: ";
+    for (const auto &elem: a.vs_) {
+        os << elem << ";";
+    }
+
+    return os;
+}
+
+void f_val(A a)
+{
+    cout << "f_val()...\n";
+//    cout << a << endl;
+}
+
+void f_constref(const A &a)
+{
+    cout << "f_constref()...\n";
+//    cout << a << endl;
+}
+
+struct B
+{
+    unique_ptr<int> up_i_;
+
+    B(int i = 0)
+        : up_i_ {unique_ptr<int>(new int {i})}
+    {
+        cout << "B::B()\n";
+    }
+    ~B() { cout << "B::~B()\n"; }
+
+    B(const B &b)
+        : up_i_ {unique_ptr<int>(new int {*b.up_i_})}
+    {
+        cout << "B::B(const B &b)\n";
+    }
+
+    B& operator=(const B &b)
+    {
+        cout << "B::operator=(const B &b)\n";
+//        up_i_.reset(new int {*b.up_i_});  // same as *up_i_ = *b.up_i_
+        *up_i_ = *b.up_i_;
+        return *this;
+    }
+
+    B(B &&b)
+        : up_i_ {std::move(b.up_i_)}
+    {
+        cout << "B::B(B &&b)\n";
+    }
+
+    B& operator=(B &&b)
+    {
+        up_i_ = std::move(b.up_i_);
+        return *this;
+    }
+};
+
+ostream& operator<<(ostream &os, const B &b)
+{
+    os  << "up_i_: " << (b.up_i_ != nullptr ? *b.up_i_ : 0)
+           ;
+    return os;
+}
+
+void f_val(B b)
+{
+    cout << "f_val()...\n";
+    cout << b << endl;
+}
+
+struct C
+{
+    std::size_t size_;
+    unique_ptr<int[]> array_;
+
+    C(std::size_t size = 0, int default_val = 0)
+        : size_{size}, array_{unique_ptr<int[]>(new int[size])}
+    {
+        cout << "C::C()\n";
+        std::fill(&array_[0], &array_[0] + size, default_val);
+    }
+
+    C(const C &c)
+        : size_{c.size_}, array_{unique_ptr<int[]>(new int[size_])}
+    {
+        cout << "C::C(const C&)\n";
+        if ((c.array_ != nullptr) && (size_))
+            std::copy(&c.array_[0], &c.array_[0]+size_, &array_[0]);
+    }
+
+    C& operator=(const C& c)
+    {
+        cout << "C::operator=(const C&)\n";
+        size_ = c.size_;
+        if (c.array_ != nullptr) {
+            array_.reset(new int[size_]);
+            if (size_) {
+                std::copy(&c.array_[0], &c.array_[0] + size_, &array_[0]);
+            }
+        }
+        else
+            array_.reset(nullptr);
+        return *this;
+    }
+
+    C(C &&c)
+        : size_(c.size_), array_(std::move(c.array_))
+    {
+        cout << "C::C(C&&)\n";
+    }
+
+    C& operator=(C &&c)
+    {
+        size_ = c.size_;
+        array_ = std::move(c.array_);
+        return *this;
+    }
+};
+
+ostream& operator<<(ostream& os, const C &c)
+{
+    cout << "size: " << c.size_ << ", array: ";
+    if (c.array_ != nullptr) {
+        for (std::size_t i = 0; i < c.size_; ++i) {
+            cout << c.array_[i] << " ";
+        }
+    }
+    else
+        cout << "null";
+    return os;
+}
+
+struct D
+{
+    D() { cout << "D::D()" << endl; }
+    ~D() { cout << "D::~D()" << endl; }
+    D(const D&) { cout << "D::D(const D&)" << endl; }
+    D& operator=(const D&) { cout << "D::D(const D&)" << endl; return *this; }
+    D(D&&) { cout << "D::D(D&&)" << endl; }
+    D& operator=(D&&) { cout << "D::D(D&&)" << endl; return *this; }
+
+    void foo() { cout << "D::foo()" << endl; }
+};
+
+struct E
+{
+    unique_ptr<D> up_d_;
+
+    E()
+        : up_d_{unique_ptr<D>(new D)}
+    {
+        cout << "E::E()" << endl;
+    }
+
+    ~E() { cout << "E::~E()" << endl; }
+
+    E(const E& e)
+    {
+        cout << "E::E(const E&)" << endl;
+        if (e.up_d_ != nullptr)
+            up_d_ = unique_ptr<D>(new D(*e.up_d_));
+        else
+            up_d_ = nullptr;
+    }
+
+    E& operator=(const E&)
+    {
+        cout << "E::E(const E&)" << endl;
+    }
+//    D(D&&) { cout << "D::D(D&&)" << endl; }
+//    D& operator=(D&&) { cout << "D::D(D&&)" << endl; }
+};
+
+ostream& operator<<(ostream& os, const D &d)
+{
+    return os;
+}
+
+ostream& operator<<(ostream& os, const E &e)
+{
+    cout << *e.up_d_;
+    return os;
+}
+
+int main(int argc, char *argv[])
+{
+
+    {
+        cout << "Value semantics...\n";
+        A a;
+        cout << a << endl;
+        cout << "Copy construct...\n";
+        f_val(a);
+        cout << "source: " << a << endl;
+        cout << "Move construct...\n";
+        f_val(std::move(a));
+        cout << "source: " << a << endl;
+        A b, c;
+        cout << "Move assign...\n";
+        b = std::move(c);
+        cout << "dest: " << b << endl;
+        cout << "source: " << c << endl;
+    }
+    cout << endl;
+
+    {
+        cout << "Value semantics with unique_ptr...\n";
+        B b;
+        cout << b << endl;
+        cout << "Copy construct...\n";
+        f_val(b);
+        cout << "source: " << b << endl;
+        cout << "Copy assign...\n";
+        B b1 {5}, b2;
+        b2 = b1;
+        cout << "source: " << b1 << endl;
+        cout << "dest: " << b2 << endl;
+        cout << "Move construct...\n";
+        B b3 {123}, b4(std::move(b3));
+        cout << "dest: " << b4 << endl;
+        cout << "source: " << b3 << endl;
+        cout << "Move assign...\n";
+        B b5 {456}, b6;
+        b6  = std::move(b5);
+        cout << "dest: " << b6 << endl;
+        cout << "source: " << b5 << endl;
+    }
+    cout << endl;
+
+    {
+        cout << "Value semantics with unique_ptr[]...\n";
+        C c{10, 5};
+        cout << c << endl;
+        cout << "Copy construct...\n";
+        C c2{c};
+        cout << "dest:   " << c2 << endl;
+        cout << "source: " << c << endl;
+        cout << "Copy assign...\n";
+        C c3;
+        c3 = c;
+        cout << "dest:   " << c3 << endl;
+        cout << "source: " << c << endl;
+        cout << "Move construct...\n";
+        C c4(std::move(c));
+        cout << "dest:   " << c4 << endl;
+        cout << "source: " << c << endl;
+        cout << "Move assign...\n";
+        C c5{5, 123};
+        C c6;
+        c6 = std::move(c5);
+        cout << "dest:   " << c6 << endl;
+        cout << "source: " << c5 << endl;
+    }
+    cout << endl;
+
+    {
+        cout << "Value semantics with unique_ptr to class...\n";
+        E e;
+        cout << e << endl;
+    }
+    cout << endl;
 
     return 0;
 }
