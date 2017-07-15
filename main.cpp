@@ -671,22 +671,36 @@ ostream& operator<<(ostream& os, const C &c)
 
 struct D
 {
-    D() { cout << "D::D()" << endl; }
+    int i_ = 0;
+    D(int i)
+        : i_{i}
+    { cout << "D::D()" << endl; }
     ~D() { cout << "D::~D()" << endl; }
-    D(const D&) { cout << "D::D(const D&)" << endl; }
-    D& operator=(const D&) { cout << "D::D(const D&)" << endl; return *this; }
-    D(D&&) { cout << "D::D(D&&)" << endl; }
+    D(const D &d)
+        : i_(d.i_)
+    { cout << "D::D(const D&)" << endl; }
+    D& operator=(const D &d)
+    {
+        cout << "D::operator=(const D&)" << endl; return *this;
+        i_ = d.i_;
+    }
+    D(D &&d)
+    {
+        cout << "D::D(D&&)" << endl;
+        i_ = d.i_;
+        d.i_ = 0;
+    }
     D& operator=(D&&) { cout << "D::D(D&&)" << endl; return *this; }
 
-    void foo() { cout << "D::foo()" << endl; }
+    void foo() { cout << "D::foo(): " << i_ << endl; }
 };
 
 struct E
 {
     unique_ptr<D> up_d_;
 
-    E()
-        : up_d_{unique_ptr<D>(new D)}
+    E(int i = 0)
+        : up_d_{unique_ptr<D>(new D{i})}
     {
         cout << "E::E()" << endl;
     }
@@ -702,22 +716,34 @@ struct E
             up_d_ = nullptr;
     }
 
-    E& operator=(const E&)
+    E& operator=(const E &e)
     {
-        cout << "E::E(const E&)" << endl;
+        cout << "E::operator=(const E&)" << endl;
+        if (e.up_d_ != nullptr)
+            up_d_.reset(new D{*e.up_d_});
+        else
+            up_d_.reset(nullptr);
     }
-//    D(D&&) { cout << "D::D(D&&)" << endl; }
-//    D& operator=(D&&) { cout << "D::D(D&&)" << endl; }
+
+    E(E &&e)
+        : up_d_(std::move(e.up_d_))
+    {
+        cout << "E::E(E&&)" << endl;
+    }
 };
 
 ostream& operator<<(ostream& os, const D &d)
 {
+    cout << d.i_;
     return os;
 }
 
 ostream& operator<<(ostream& os, const E &e)
 {
-    cout << *e.up_d_;
+    if (e.up_d_ != nullptr)
+        cout << *e.up_d_;
+    else
+        cout << "null";
     return os;
 }
 
@@ -794,8 +820,22 @@ int main(int argc, char *argv[])
 
     {
         cout << "Value semantics with unique_ptr to class...\n";
-        E e;
+        E e{5};
         cout << e << endl;
+        cout << "Copy construct...\n";
+        E e1{e};
+        cout << "dest:   " << e1 << endl;
+        cout << "source: " << e << endl;
+        cout << "Copy assign...\n";
+        E e2;
+        e2 = e;
+        cout << "dest:   " << e2 << endl;
+        cout << "source: " << e << endl;
+        cout << "Move construct...\n";
+        E e3(std::move(e));
+        cout << "dest:   " << e3 << endl;
+        cout << "source: " << e << endl;
+
     }
     cout << endl;
 
