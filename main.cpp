@@ -723,6 +723,7 @@ struct E
             up_d_.reset(new D{*e.up_d_});
         else
             up_d_.reset(nullptr);
+        return *this;
     }
 
     E(E &&e)
@@ -751,6 +752,33 @@ ostream& operator<<(ostream& os, const E &e)
         cout << *e.up_d_;
     else
         cout << "null";
+    return os;
+}
+
+struct F
+{
+    vector<unique_ptr<D>> v_upd_;
+
+    F(std::size_t n_elements = 0, int default_val = 0)
+        : v_upd_()//, std::move(unique_ptr<D>(new D(default_val))))
+    {
+        cout << "F::F()" << endl;
+        for (std::size_t i=0; i < n_elements; ++i)
+//            v_upd_.push_back(unique_ptr<D>(new D(default_val)));
+            v_upd_.emplace_back(new D(default_val));
+    }
+
+    ~F() { cout << "F::~F()" << endl; }
+};
+
+ostream& operator<<(ostream& os, const F &f)
+{
+    os << "size: " << f.v_upd_.size();
+    if (f.v_upd_.size()) {
+        os << ", elements: ";
+        for (const auto &element: f.v_upd_)
+            os << *element << " ";
+    }
     return os;
 }
 
@@ -849,6 +877,13 @@ int main(int argc, char *argv[])
         cout << "dest:   " << e5 << endl;
         cout << "source: " << e4 << endl;
 
+    }
+    cout << endl;
+
+    {
+        cout << "Value semantics with vector of unique_ptr to class...\n";
+        F f{5, 123};
+        cout << f << endl;
     }
     cout << endl;
 
