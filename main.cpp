@@ -674,8 +674,8 @@ struct D
     int i_ = 0;
     D(int i)
         : i_{i}
-    { cout << "D::D()" << endl; }
-    ~D() { cout << "D::~D()" << endl; }
+    { cout << "D::D(): " << i_ << endl; }
+    ~D() { cout << "D::~D(): " << i_ << endl; }
     D(const D &d)
         : i_(d.i_)
     { cout << "D::D(const D&)" << endl; }
@@ -729,6 +729,13 @@ struct E
         : up_d_(std::move(e.up_d_))
     {
         cout << "E::E(E&&)" << endl;
+    }
+
+    E& operator=(E &&e)
+    {
+        cout << "E::operator=(E&&)\n";
+        up_d_ = std::move(e.up_d_);
+        return *this;
     }
 };
 
@@ -835,6 +842,12 @@ int main(int argc, char *argv[])
         E e3(std::move(e));
         cout << "dest:   " << e3 << endl;
         cout << "source: " << e << endl;
+        cout << "Move assign...\n";
+        E e4{123};
+        E e5{456};
+        e5 = std::move(e4);
+        cout << "dest:   " << e5 << endl;
+        cout << "source: " << e4 << endl;
 
     }
     cout << endl;
