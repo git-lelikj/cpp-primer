@@ -1,0 +1,45 @@
+.settings
+
+# Normal rules
+#
+.*
+*.o
+*.o.*
+*.a
+*.s
+#*.ko
+*.so
+*.so.dbg
+*.mod.c
+*.i
+*.lst
+*.symtypes
+*.order
+*.elf
+*.bin
+*.tar
+*.gz
+*.bz2
+*.lzma
+*.xz
+*.lz4
+*.lzo
+*.patch
+*.gcno
+modules.builtin
+Module.symvers
+*.dwo
+*.*~
+*.user
+
+#
+# Top-level generic files
+#
+/build
+
+#
+# git files that we don't want to ignore even it they are dot-files
+#
+!.gitignore
+
+
