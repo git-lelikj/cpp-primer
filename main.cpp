@@ -763,12 +763,45 @@ struct F
         : v_upd_()//, std::move(unique_ptr<D>(new D(default_val))))
     {
         cout << "F::F()" << endl;
-        for (std::size_t i=0; i < n_elements; ++i)
+        for (std::size_t i=0; i < n_elements; ++i) {
 //            v_upd_.push_back(unique_ptr<D>(new D(default_val)));
             v_upd_.emplace_back(new D(default_val));
+        }
     }
 
     ~F() { cout << "F::~F()" << endl; }
+
+    F(const F &f)
+        : v_upd_()
+    {
+        cout << "F::F(const F&)\n";
+        for (const auto &f_elem: f.v_upd_)
+            v_upd_.emplace_back(new D(*f_elem));
+    }
+
+    F& operator=(const F &f)
+    {
+        cout << "F::operator=(const F&)\n";
+        if (this != &f) {
+            v_upd_.clear();
+            for (const auto &f_elem: f.v_upd_)
+                v_upd_.emplace_back(new D(*f_elem));
+        }
+        return *this;
+    }
+
+    F(F &&f)
+        : v_upd_(std::move(f.v_upd_))
+    {
+        cout << "F::F(F&&)\n";
+    }
+
+    F& operator=(F &&f)
+    {
+        cout << "F& operator=(F&&)\n";
+        v_upd_ = std::move(f.v_upd_);
+        return *this;
+    }
 };
 
 ostream& operator<<(ostream& os, const F &f)
@@ -882,8 +915,28 @@ int main(int argc, char *argv[])
 
     {
         cout << "Value semantics with vector of unique_ptr to class...\n";
-        F f{5, 123};
+        F f{5, 5};
         cout << f << endl;
+        cout << "Copy construct...\n";
+        F f1(f);
+        cout << "dest:   " << f1 << endl;
+        cout << "source: " << f << endl;
+        cout << "Copy assign...\n";
+        F f2{10, 10};
+        f2 = f;
+        cout << "dest:   " << f2 << endl;
+        cout << "source: " << f << endl;
+        cout << "Move construct...\n";
+        F f3{3, 3};
+        F f4(std::move(f3));
+        cout << "dest:   " << f4 << endl;
+        cout << "source: " << f3 << endl;
+        cout << "Move assign...\n";
+        F f5{4, 4};
+        F f6;
+        f6 = std::move(f5);
+        cout << "dest:   " << f6 << endl;
+        cout << "source: " << f5 << endl;
     }
     cout << endl;
 
