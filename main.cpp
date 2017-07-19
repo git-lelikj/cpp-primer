@@ -500,6 +500,8 @@ int main(int argc, char *argv[])
 // --------------------------------------------------------------------------------------------
 // copy/assign/move/swap
 // --------------------------------------------------------------------------------------------
+
+#if 0
 #include <iostream>
 #include <vector>
 #include <string>
@@ -939,6 +941,70 @@ int main(int argc, char *argv[])
         cout << "source: " << f5 << endl;
     }
     cout << endl;
+
+    return 0;
+}
+#endif
+
+// --------------------------------------------------------------------------------------------
+// 10 proven interview questions: #8
+//    Write a templated struct that determines, at compile time, whether its template argument
+//    T is a pointer
+// --------------------------------------------------------------------------------------------
+#if 0
+
+#include <iostream>
+using namespace std;
+
+template<typename T>
+struct Is_pointer
+{
+    static constexpr bool result_ = false;
+};
+
+template<typename T>
+struct Is_pointer<T*>
+{
+    static constexpr bool result_ = true;
+};
+
+class A {};
+
+int main(int argc, char *argv[])
+{
+    cout << "int:        " << (Is_pointer<int>::result_==true ? "pointer" : "not a pointer") << endl;
+    cout << "int*:       " << (Is_pointer<int*>::result_==true ? "pointer" : "not a pointer") << endl;
+    cout << "A:          " << (Is_pointer<A>::result_==true ? "pointer" : "not a pointer") << endl;
+    cout << "A*:         " << (Is_pointer<A*>::result_==true ? "pointer" : "not a pointer") << endl;
+    cout << "A&:         " << (Is_pointer<A&>::result_==true ? "pointer" : "not a pointer") << endl;
+    cout << "const A*:   " << (Is_pointer<const A*>::result_==true ? "pointer" : "not a pointer") << endl;
+    return 0;
+}
+#endif
+// --------------------------------------------------------------------------------------------
+// 10 proven interview questions: #9
+//    Define a function insertion_sort which accepts as first and only argument a reference to an
+//    std::array only if the element types are integral (the trait std::is_integral might be of help)
+//    and the size of the array is less than 128 elements, and sorts it using insertion sort
+// --------------------------------------------------------------------------------------------
+
+#include <iostream>
+#include <array>
+#include <type_traits>
+using namespace std;
+
+template<typename T, int size>
+void insertion_sort(array<T, size> &arr,
+                    enable_if<true, T>::type &t)
+{
+    //TBD
+}
+
+int main(int argc, char *argv[])
+{
+    array<int, 10> arr_int_10;
+
+    insertion_sort<int, 10>(arr_int_10);
 
     return 0;
 }
