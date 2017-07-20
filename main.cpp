@@ -993,18 +993,18 @@ int main(int argc, char *argv[])
 #include <type_traits>
 using namespace std;
 
-template<typename T, int size>
-void insertion_sort(array<T, size> &arr,
-                    enable_if<true, T>::type &t)
-{
-    //TBD
-}
+//template<typename T, int size>
+//void insertion_sort(array<T, size> &arr,
+//                    enable_if<true, T>::type &t)
+//{
+//    //TBD
+//}
 
 int main(int argc, char *argv[])
 {
     array<int, 10> arr_int_10;
 
-    insertion_sort<int, 10>(arr_int_10);
+//    insertion_sort<int, 10>(arr_int_10);
 
     return 0;
 }
