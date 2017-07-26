@@ -982,6 +982,65 @@ int main(int argc, char *argv[])
 }
 #endif
 // --------------------------------------------------------------------------------------------
+// std::enable_if
+// --------------------------------------------------------------------------------------------
+#if 0
+#include <iostream>
+#include <array>
+#include <type_traits>
+using namespace std;
+
+struct A
+{
+    int i_ = 0;
+    A(int i = 0)
+        : i_{i}
+    {}
+};
+
+ostream& operator<<(ostream& os, const A &a)
+{
+    os << "A::i_: " <<  a.i_;
+    return os;
+}
+
+template <typename T,
+          typename enable_if<is_integral<T>::value, T>::type* = nullptr>
+void display(const T &t)
+{
+    cout << "integral: " << t << endl;
+}
+
+template <typename T,
+          typename enable_if<is_floating_point<T>::value, T>::type* = nullptr>
+void display(const T &t)
+{
+    cout << "floating point: " << t << endl;
+}
+
+template <typename T,
+          typename enable_if<is_class<T>::value, T>::type* = nullptr>
+void display(const T &t)
+{
+    cout << "struct or class: " << t << endl;
+}
+
+int main(int argc, char *argv[])
+{
+//    array<int, 10> arr_int_10;
+
+//    insertion_sort<int, 10>(arr_int_10);
+
+    A a(123);
+    display(5);
+    display(5.5);
+    display(a);
+
+    return 0;
+}
+#endif
+
+// --------------------------------------------------------------------------------------------
 // 10 proven interview questions: #9
 //    Define a function insertion_sort which accepts as first and only argument a reference to an
 //    std::array only if the element types are integral (the trait std::is_integral might be of help)
@@ -993,18 +1052,40 @@ int main(int argc, char *argv[])
 #include <type_traits>
 using namespace std;
 
-//template<typename T, int size>
-//void insertion_sort(array<T, size> &arr,
-//                    enable_if<true, T>::type &t)
-//{
-//    //TBD
-//}
+template<typename T, size_t size,
+         typename enable_if< is_integral<T>::value &&
+                             (size < 128),
+                             T >::type* = nullptr>
+void insertion_sort(array<T, size> &arr)
+{
+    cout << "insertion_sort: integral, array size: " << arr.size() << endl;
+
+    for (size_t i = 1; i < arr.size(); ++i) {
+        for (size_t j = (i); (j > 0) && (arr[j] < arr[j-1]); --j) {
+            swap(arr[j], arr[j-1]);
+        }
+    }
+}
+
+template<typename Array>
+void display_array(const Array &a)
+{
+  for (size_t i = 0; i < a.size(); ++i) {
+    cout << a[i] << " ";
+  }
+}
 
 int main(int argc, char *argv[])
 {
-    array<int, 10> arr_int_10;
+    array<int, 10> arr_int_10 = {{10, 2, 5, 6, 8 ,9, 1, 3, 4, 7}};
+//    array<double, 10> arr_double_10;
 
-//    insertion_sort<int, 10>(arr_int_10);
+    display_array(arr_int_10); cout << endl;
+
+    insertion_sort(arr_int_10);
+
+    display_array(arr_int_10); cout << endl;
+//    insertion_sort(arr_double_10);
 
     return 0;
 }
